@@ -1,13 +1,18 @@
+import os
 from pathlib import Path
 from datetime import timedelta
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Quick-start development settings - unsuitable for production
-SECRET_KEY = 'django-insecure-change-me-later'
-DEBUG = True
-ALLOWED_HOSTS = ['*']
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.getenv('SECRET_KEY', 'fallback-dev-key')
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
+
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 
 # Application definition
 INSTALLED_APPS = [
@@ -36,6 +41,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', # Add this right here after SecurityMiddleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -64,12 +70,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
+# Database
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -116,12 +124,15 @@ SIMPLE_JWT = {
 
 # Static files
 STATICFILES_DIRS = [BASE_DIR / 'static']
+#STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Login/Logout Redirects
 LOGIN_URL = '/auth/login'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/auth/login'
 
-# Stripe Configuration
-STRIPE_PUBLISHABLE_KEY = 'pk_test_...' # Replace with your actual publishable key
-STRIPE_SECRET_KEY = 'sk_test_...'      # Replace with your actual secret key
+# Stripe
+STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY')
+STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
